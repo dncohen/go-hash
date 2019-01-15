@@ -6,7 +6,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/renatoathaydes/go-hash/encryption"
+	"github.com/dncohen/qpass/encryption"
 )
 
 const (

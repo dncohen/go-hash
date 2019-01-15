@@ -15,8 +15,8 @@ import (
 	"time"
 
 	"github.com/chzyer/readline"
+	"github.com/dncohen/qpass/gohash_db"
 	"github.com/mitchellh/go-homedir"
-	"github.com/renatoathaydes/go-hash/gohash_db"
 	"golang.org/x/crypto/ssh/terminal"
 )
 

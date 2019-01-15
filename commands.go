@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/renatoathaydes/go-hash/encryption"
-	"github.com/renatoathaydes/go-hash/gohash_db"
+	"github.com/dncohen/qpass/encryption"
+	"github.com/dncohen/qpass/gohash_db"
 
 	"github.com/atotto/clipboard"
 	"github.com/chzyer/readline"

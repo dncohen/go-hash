@@ -1,3 +1,10 @@
+This fork of `go-hash` differs from that project in several ways.
+
+* qubes-specific features, i.e. the `appvm` and `dispvm` commands
+* renamed to `qpass`, to reflect the intention to use within qubes
+* inactivity will close the application automatically (currently two minutes)
+* a variety of other personal preferences, such as making the tool less verbose
+
 # go-hash
 
 > IMPORTANT: This project uses the latest crypto technologies to protect your data, but it comes with no warranties. If you find a weakness in the design of the database format or implementation, please create an issue immediately.

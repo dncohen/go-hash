@@ -27,7 +27,7 @@ do
     esac
 done
 
-# write to clipboard, via `xlip`
+# write to clipboard, via `xclip`
 # we use xclip here, because xsel fails to write to clipboard ("Conversion refused")
 command -v xclip >/dev/null 2>&1 || { echo >&2 "xclip not found"; exit 1; }
 (cat <<EOF

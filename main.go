@@ -74,38 +74,42 @@ func isDir(path string) bool {
 
 func createPassword() string {
 	for i := 0; i < 10; i++ {
-		print("Please enter a master password: ")
+		print("Enter a master password: ")
 		pass, err := terminal.ReadPassword(int(syscall.Stdin))
 		println("")
 		if err != nil {
 			panic(err)
 		}
-		if len(pass) > 7 {
-			for i := 0; i < 3; i++ {
-				print("Re-enter the password: ")
-				pass2, err := terminal.ReadPassword(int(syscall.Stdin))
-				println("")
-				if err != nil {
-					panic(err)
-				}
-				if len(pass2) == 0 {
-					break
-				}
-				if bytes.Equal(pass, pass2) {
-					return string(pass)
-				}
-				println("No match! Try again or just hit Enter to start again.")
+		if len(pass) > 0 {
+			if len(pass) < 7 {
+				fmt.Println("You've chosen a short (insecure) master password.  Just testing? I hope so.")
 			}
+
+			print("Confirm the master password: ")
+			pass2, err := terminal.ReadPassword(int(syscall.Stdin))
+			println("")
+			if err != nil {
+				panic(err)
+			}
+			if len(pass2) == 0 {
+				break
+			}
+			if bytes.Equal(pass, pass2) {
+				return string(pass)
+			}
+			println("Password mismatch, try again.")
 		} else {
-			println("Password too short! Please use at least 8 characters")
+			println("A password is required.")
 		}
 	}
-	panic("Too many attempts!")
+	fmt.Println("This is just isn't going to work out.")
+	os.Exit(1)
+	return ""
 }
 
 func openDatabase(dbFilePath string) (state State, userPass string) {
 	for i := 0; i < 5; i++ {
-		print("Please enter your master password: ")
+		print("Master password: ")
 		bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 		println("")
 		if err != nil {
@@ -119,7 +123,9 @@ func openDatabase(dbFilePath string) (state State, userPass string) {
 			return
 		}
 	}
-	panic("Too many attempts!")
+	fmt.Println("Too many attempts!")
+	os.Exit(1)
+	return
 }
 
 func splitTrimN(text string, max int) []string {
@@ -141,7 +147,7 @@ func runCliLoop(state *State, dbPath string, userPass string) {
 		if len(grBox.value) > 0 && grBox.value != "default" {
 			modifier = ":" + grBox.value
 		}
-		return fmt.Sprintf("\033[31mgo-hash%s»\033[0m ", modifier)
+		return fmt.Sprintf("\033[31m%s%s »\033[0m ", dbPath, modifier)
 	}
 
 	commands := createCommands(state, &grBox, &mpBox)
@@ -247,8 +253,7 @@ Loop:
 func main() {
 	var userPass string
 	var state State
-	println("Go-Hash version " + gohash_db.DBVersion)
-	println("")
+	fmt.Printf("%s (db version: %s)\n\n", os.Args[0], gohash_db.DBVersion) // verbose
 
 	var dbFilePath string
 
@@ -258,22 +263,22 @@ func main() {
 	case 2:
 		dbFilePath = os.Args[1]
 		if !parentDirExists(dbFilePath) {
-			panic("The provided file is under a non-existing directory. Please create the directory manually first.")
+			fmt.Printf("Directory not found (%s)\n\n", filepath.Dir(dbFilePath))
+			os.Exit(2)
 		}
 		if isDir(dbFilePath) {
-			panic("The path you provided is a directory. Please provide a file.")
+			fmt.Printf("File not found (%s): path is a directory\n\n", dbFilePath)
+			os.Exit(2)
 		}
 	default:
-		panic("Too many arguments provided. go-hash only accepts none or one argument: the passwords file.")
+		fmt.Printf("Usage: %s <path to password db>\n\n", os.Args[0])
+		os.Exit(2)
 	}
 
 	dbFile, err := os.Open(dbFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			println("No database exists yet, to create one, you need to provide a strong password first.")
-			println("A strong password could be a phrase you could remember easily but that is hard to guess.")
-			println("To make it harder to guess, include both upper and lower-case letters, numbers and special characters like ? and @.")
-			println("If you forget this password, there's no way to recover it or your data, so be careful!\n")
+			fmt.Printf("creating new password database (%s)\n", dbFilePath)
 			userPass = createPassword()
 		} else {
 			panic(err)
@@ -289,6 +294,5 @@ func main() {
 		state["default"] = []LoginInfo{}
 	}
 
-	println("\nWelcome, go-hash at your service.\n")
 	runCliLoop(&state, dbFilePath, userPass)
 }

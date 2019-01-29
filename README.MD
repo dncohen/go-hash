@@ -1,4 +1,4 @@
-This fork of [`go-hash`](https://www.qubes-os.org/) differs from
+This fork of [`go-hash`](https://github.com/renatoathaydes/go-hash) differs from
 upstream in several ways.
 
 * qubes-specific features (the `appvm` and `dispvm` commands)

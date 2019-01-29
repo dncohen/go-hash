@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -23,6 +24,8 @@ import (
 // exit gracefully if ctrl-C during password prompt
 // https://groups.google.com/forum/#!topic/golang-nuts/kTVAbtee9UA
 var initialState *terminal.State
+
+var idleSec uint // password required after inactivity
 
 func init() {
 	log.SetOutput(ioutil.Discard)
@@ -163,44 +166,13 @@ func runCliLoop(state *State, dbPath string, userPass string) {
 	defer cli.Close()
 
 	eofCount := 0
-
-	// cli input to channel, so that we can exit on timeout
-	input := make(chan struct {
-		line string
-		err  error
-	})
+	idleSince := time.Now()
+	passwordTimeout := time.Duration(idleSec) * time.Second
 
 Loop:
 	for {
 		cli.SetPrompt(prompt())
-		go func() {
-			line, err := cli.Readline()
-			input <- struct {
-				line string
-				err  error
-			}{
-				line,
-				err,
-			}
-		}()
-
-		var line string
-		var err error
-
-		select {
-		case in := <-input:
-			line = in.line
-			err = in.err
-			// continue below
-
-		case <-time.After(2 * time.Minute):
-			println("\nExiting due to inactivity.")
-			// reverse the effect of readline
-			_ = terminal.Restore(syscall.Stdin, initialState)
-			// would be elegant to simply "break Loop" here, but that leaves goroutine (above) running
-			os.Exit(0)
-		}
-
+		line, err := cli.Readline()
 		if err != nil {
 			switch err {
 			case readline.ErrInterrupt:
@@ -238,8 +210,29 @@ Loop:
 		default:
 			command := commands[cmd]
 			if command != nil {
+
+				deltaT := time.Now().Sub(idleSince)
+				if cmd != "cmp" && cmd != "help" { // cmp will prompt for password every time, help is not sensitive
+					if idleSec > 0 && deltaT > passwordTimeout {
+						// prompt for password before allowing command to run
+						fmt.Printf("password required (idle %s)\n", deltaT.Round(time.Second))
+						print("master password: ")
+						pass, err := terminal.ReadPassword(int(syscall.Stdin))
+						println("")
+						if err != nil {
+							println("error:", err)
+							continue Loop
+						}
+						if string(pass) != mpBox.value {
+							println("error: password mismatch")
+							continue Loop
+						}
+					}
+					idleSince = time.Now()
+				}
+
 				command.run(state, grBox.value, args, reader)
-				err := gohash_db.WriteDatabase(dbPath, mpBox.value, state)
+				err = gohash_db.WriteDatabase(dbPath, mpBox.value, state)
 				if err != nil {
 					println("Error writing to database: " + err.Error())
 				}
@@ -256,22 +249,21 @@ func main() {
 	fmt.Printf("%s (db version: %s)\n\n", os.Args[0], gohash_db.DBVersion) // verbose
 
 	var dbFilePath string
+	flag.UintVar(&idleSec, "idle", 60, "password timeout, in seconds (use 0 for no timeout)")
+	flag.StringVar(&dbFilePath, "db", getGoHashFilePath(), "file where password data is stored")
+	flag.Parse()
 
-	switch len(os.Args) {
-	case 1:
-		dbFilePath = getGoHashFilePath()
-	case 2:
-		dbFilePath = os.Args[1]
-		if !parentDirExists(dbFilePath) {
-			fmt.Printf("Directory not found (%s)\n\n", filepath.Dir(dbFilePath))
-			os.Exit(2)
-		}
-		if isDir(dbFilePath) {
-			fmt.Printf("File not found (%s): path is a directory\n\n", dbFilePath)
-			os.Exit(2)
-		}
-	default:
-		fmt.Printf("Usage: %s <path to password db>\n\n", os.Args[0])
+	if !parentDirExists(dbFilePath) {
+		fmt.Printf("Directory not found (%s)\n\n", filepath.Dir(dbFilePath))
+		os.Exit(2)
+	}
+	if isDir(dbFilePath) {
+		fmt.Printf("File not found (%s): path is a directory\n\n", dbFilePath)
+		os.Exit(2)
+	}
+
+	if len(flag.Args()) > 0 {
+		fmt.Printf("usage: %s [-db <database filename>] [-idle <password timeout>]", os.Args[0])
 		os.Exit(2)
 	}
 

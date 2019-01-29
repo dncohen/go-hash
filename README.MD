@@ -1,9 +1,11 @@
-This fork of `go-hash` differs from that project in several ways.
+This fork of [`go-hash`](https://www.qubes-os.org/) differs from
+upstream in several ways.
 
-* qubes-specific features, i.e. the `appvm` and `dispvm` commands
-* renamed to `qpass`, to reflect the intention to use within qubes
-* inactivity will close the application automatically (currently two minutes)
-* a variety of other personal preferences, such as making the tool less verbose
+* qubes-specific features (the `appvm` and `dispvm` commands)
+* renamed to `qpass`, to reflect the intention to use within
+  [qubes-os](https://www.qubes-os.org/)
+* inactivity will force user to re-enter master password
+* other personal preferences, such as making the tool less verbose
 
 # go-hash
 

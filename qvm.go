@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"log"
 	"os/exec"
 	"strings"
 )
@@ -74,7 +73,11 @@ func (this appvmCommand) open(group, passwd, url string) error {
 	//args = append(args, url)
 
 	cmd := exec.Command(command, args...)
-	stdin, err := cmd.StdinPipe()
+
+	// qpass.ClipOpenURL expects a password on the first line (will by
+	// copied to clipboard), followed by URLs to open (one, in our case)
+	// TODO: ensure passwd has no newlines
+	cmdIn, err := cmd.StdinPipe()
 	if err != nil {
 		return err
 	}
@@ -82,11 +85,20 @@ func (this appvmCommand) open(group, passwd, url string) error {
 	if err != nil {
 		return err
 	}
-	log.Println("HERE", passwd)
-	io.WriteString(stdin, passwd)
-	io.WriteString(stdin, "\n")
-	io.WriteString(stdin, url)
-	io.WriteString(stdin, "\n")
-	stdin.Close()
+
+	io.WriteString(cmdIn, fmt.Sprintf("%s\n%s\n", passwd, url))
+	cmdIn.Close() // explicit close, in case qpass.ClipOpenURL requires it (one version did).
+
+	// comments here as I am figuring the best way to log output of qrexec call.
+	//out, err := cmd.CombinedOutput()
+	//log.Printf("output from %s:\n%s\n", command, out)
+
+	//log.Println("WAITING", command)
+	err = cmd.Wait()
+	//log.Println("DONE", command, err)
+	if err != nil {
+		return err
+	}
+
 	return err
 }

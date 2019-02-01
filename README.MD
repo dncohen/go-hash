@@ -1,13 +1,13 @@
 This fork of [`go-hash`](https://github.com/renatoathaydes/go-hash) differs from
 upstream in several ways.
 
+* renamed to `qpass`, to reflect the intention to use within a
+  [qubes-os](https://www.qubes-os.org/) vault virtual machine
 * qubes-specific features (the `appvm` and `dispvm` commands)
-* renamed to `qpass`, to reflect the intention to use within
-  [qubes-os](https://www.qubes-os.org/)
-* inactivity will force user to re-enter master password
-* other personal preferences, such as making the tool less verbose
+* inactivity will require user to re-enter master password
+* personal preferences, such as making the tool less verbose
 
-# go-hash
+# qpass (formerly go-hash)
 
 > IMPORTANT: This project uses the latest crypto technologies to protect your data, but it comes with no warranties. If you find a weakness in the design of the database format or implementation, please create an issue immediately.
 

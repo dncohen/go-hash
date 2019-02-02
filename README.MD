@@ -7,7 +7,7 @@ upstream in several ways.
 * inactivity will require user to re-enter master password
 * personal preferences, such as making the tool less verbose
 
-# qpass (formerly go-hash)
+# qpass (fork of go-hash for Qubes-os)
 
 > IMPORTANT: This project uses the latest crypto technologies to protect your data, but it comes with no warranties. If you find a weakness in the design of the database format or implementation, please create an issue immediately.
 

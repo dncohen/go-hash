@@ -64,7 +64,8 @@ $sleeper
 
 # (TODO: clear only if clipboard contents have not changed)
 
-echo "" | ($clearer)
+echo "" | ($clearer) > /dev/null
+
 status=$?
 
 #echo "clearer: $?"

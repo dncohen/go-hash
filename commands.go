@@ -1052,15 +1052,15 @@ func generatePassword(reader *bufio.Reader) (password string) {
 			}
 		}
 
-		passwordStrength := encryption.STRONG
+		passwordStrength := encryption.DefaultPasswordStrength
 		for {
 			answer := strings.TrimSpace(read(reader,
-				"\nChoose a password policy:\n\nOption 1: include only latin letters.\n"+
+				fmt.Sprintf("\nChoose a password policy:\n\nOption 1: include only latin letters.\n"+
 					"Option 2: also include numbers.\n"+
 					"Option 3: also include symbols (e.g. @, !, >, $, etc.)\n"+
 					"Option 4: also include supplementary latin letters\n"+
 					"Option 5: include all extended ASCII characters, except control characters.\n\n"+
-					"Which option do you prefer? [1/2/3/4/5] (4) "))
+					"Which option do you prefer? [1/2/3/4/5] (%d) ", passwordStrength)))
 			if answer == "" {
 				break
 			} else {

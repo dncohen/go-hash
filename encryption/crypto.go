@@ -9,7 +9,9 @@ import (
 	"crypto/sha512"
 	"errors"
 	"io"
+	"log"
 	"math/big"
+	"unicode/utf8"
 
 	"github.com/golang/crypto/argon2"
 )
@@ -46,8 +48,10 @@ const (
 
 var defaultPasswordCharRange []uint8
 
+const DefaultPasswordStrength = NORMAL
+
 func init() {
-	defaultPasswordCharRange = GetPasswordCharRange(STRONG)
+	defaultPasswordCharRange = GetPasswordCharRange(DefaultPasswordStrength)
 }
 
 // Encrypt a message given a secret key.
@@ -121,6 +125,11 @@ func createCharRange(minChar, maxChar uint8) []uint8 {
 // GetPasswordCharRange returns the appropriate char-range for the given [PasswordStrength].
 func GetPasswordCharRange(passwordStrength PasswordStrength) (charRange []uint8) {
 	if passwordStrength < WEAK || passwordStrength > STRONGEST {
+		// is this reached?
+		log.Panicf("Unexpected password strength: %d", passwordStrength)
+	}
+	if passwordStrength == DefaultPasswordStrength && len(defaultPasswordCharRange) > 0 {
+		// TODO: cache each char range after the first time it is requested
 		return defaultPasswordCharRange
 	}
 
@@ -166,6 +175,12 @@ func GeneratePassword(length int, characters []uint8) string {
 		}
 		buffer.WriteString(string(characters[int(n.Uint64())]))
 	}
+
+	// detect potential encoding problems
+	if !utf8.ValidString(buffer.String()) {
+		panic("generated password is not valid utf8")
+	}
+
 	return buffer.String()
 }
 

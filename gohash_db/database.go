@@ -29,11 +29,16 @@ const (
 
 // WriteDatabase writes the encrypted database to the given filePath with the provided state and key.
 func WriteDatabase(filePath, password string, data *State) error {
-	file, err := os.Create(filePath)
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
+
+	err = file.Truncate(0)
+	if err != nil {
+		return err
+	}
 
 	stateBytes, err := data.bytes()
 	if err != nil {

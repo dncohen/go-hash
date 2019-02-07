@@ -249,7 +249,7 @@ func main() {
 	fmt.Printf("%s (db version: %s)\n\n", os.Args[0], gohash_db.DBVersion) // verbose
 
 	var dbFilePath string
-	flag.UintVar(&idleSec, "idle", 60, "password timeout, in seconds (use 0 for no timeout)")
+	flag.UintVar(&idleSec, "idle", 120, "password timeout, in seconds (use 0 for no timeout)")
 	flag.StringVar(&dbFilePath, "db", getGoHashFilePath(), "file where password data is stored")
 	flag.Parse()
 

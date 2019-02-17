@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"net/url"
 	"os/exec"
 	"runtime"
@@ -580,7 +581,20 @@ func (cmd cpCommand) run(state *State, group, args string, reader *bufio.Reader)
 			if err != nil {
 				fmt.Printf("Error: unable to copy! Reason: %s\n", err.Error())
 			} else {
-				go removeFromClipboardAfterDelay(content)
+				delay := 1 * time.Minute
+				fmt.Printf("%d bytes in clipboard, for %s\n", len(content), delay)
+				go func() {
+					<-time.After(delay)
+					c, err := clipboard.ReadAll()
+					if err == nil && c == content {
+						err = clipboard.WriteAll("")
+						if err != nil {
+							log.Println("Failed to clear clipboard:", err)
+						} else {
+							log.Println("Cleared clipboard") // verbose
+						}
+					}
+				}()
 			}
 		} else {
 			fmt.Printf("Error: entry '%s' does not exist.\n", entry)
@@ -1113,13 +1127,5 @@ func ask2OptionsQuestion(question string, reader *bufio.Reader,
 		} else {
 			fmt.Printf("Please answer '%s' or '%s' (no answer means '%s')\n", yesAnswer, noAnswer, defaultAnswer)
 		}
-	}
-}
-
-func removeFromClipboardAfterDelay(content string) {
-	time.Sleep(60 * time.Second)
-	c, err := clipboard.ReadAll()
-	if err == nil && c == content {
-		clipboard.WriteAll("")
 	}
 }

@@ -1,3 +1,10 @@
+NOTE: This fork is unmaintained.  I'm personally using
+[`qpm`](https://scm.beyondcentral.com/qpm/timeline), which has
+qubes-specific features similar to this project.  *You should use
+`qpm`, or the upstream `go-hash`, rather than this fork.*
+
+## `qpass` Fork
+
 This fork of [`go-hash`](https://github.com/renatoathaydes/go-hash) differs from
 upstream in several ways.
 
